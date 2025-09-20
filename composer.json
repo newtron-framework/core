@@ -1,0 +1,15 @@
+{
+  "name": "itsnewtjam/newtron-core",
+  "type": "library",
+  "autoload": {
+    "psr-4": {
+      "Newtron\\Core\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "itsnewtjam"
+    }
+  ],
+  "require": {}
+}
