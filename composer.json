@@ -6,11 +6,6 @@
       "Newtron\\Core\\": "src/"
     }
   },
-  "authors": [
-    {
-      "name": "itsnewtjam"
-    }
-  ],
   "require": {
     "composer-runtime-api": "*"
   }
