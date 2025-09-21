@@ -135,6 +135,7 @@ class Container {
             throw new \RuntimeException("Union types are not supported for parameter '{$param->getName()}'");
           }
 
+          /** @var \ReflectionNamedType $type */
           $metadata['type'] = $type->getName();
           $metadata['builtin'] = $type->isBuiltin();
         }
