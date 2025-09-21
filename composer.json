@@ -1,5 +1,5 @@
 {
-  "name": "itsnewtjam/newtron-core",
+  "name": "newtron/core",
   "type": "library",
   "autoload": {
     "psr-4": {
