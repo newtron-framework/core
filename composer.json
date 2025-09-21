@@ -11,5 +11,7 @@
       "name": "itsnewtjam"
     }
   ],
-  "require": {}
+  "require": {
+    "composer-runtime-api": "*"
+  }
 }
