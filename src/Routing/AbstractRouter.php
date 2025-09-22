@@ -88,9 +88,10 @@ abstract class AbstractRouter {
 
   public function execute(RouteDefinition $route, Request $request): Response {
     $handler = $route->getHandler();
+    $params = $route->getParams();
 
     if (is_callable($handler) || is_string($handler)) {
-      $result = App::getContainer()->call($handler);
+      $result = App::getContainer()->call($handler, $params);
       return $this->normalizeResponse($result);
     }
 

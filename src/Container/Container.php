@@ -75,7 +75,7 @@ class Container {
     return $this->callMethod($callback, $parameters);
   }
 
-  private function callMethod(callable $callback, array $parameters): mixed {
+  private function callMethod(callable $callback, array $parameters = []): mixed {
     if (is_array($callback)) {
       $reflector = new \ReflectionMethod($callback[0], $callback[1]);
     } else {
@@ -88,7 +88,7 @@ class Container {
       return call_user_func($callback);
     }
 
-    $resolvedDependencies = $this->resolveDependencies($dependencies, $parameters);
+    $resolvedDependencies = $this->resolveMethodDependencies($dependencies, $parameters);
 
     return call_user_func_array($callback, $resolvedDependencies);
   }
@@ -119,7 +119,7 @@ class Container {
     if (!isset($this->reflectionCache[$className])) {
       try {
         $reflector = new \ReflectionClass($className);
-      } catch (\RuntimeException $e) {
+      } catch (\Exception $e) {
         throw new \RuntimeException("Cannot reflect class '{$className}': " . $e->getMessage());
       }
 
@@ -216,5 +216,30 @@ class Container {
     }
 
     return $dependencies;
+  }
+
+  private function resolveMethodDependencies(array $dependencies, array $parameters = []): array {
+    $results = [];
+
+    foreach ($dependencies as $dependency) {
+      if (array_key_exists($dependency->getName(), $parameters)) {
+        $results[] = $parameters[$dependency->getName()];
+        continue;
+      }
+
+      $type = $dependency->getType();
+
+      if (is_null($type) || $type->isBuiltin()) {
+        if ($dependency->isDefaultValueAvailable()) {
+          $results[] = $dependency->getDefaultValue();
+        } else {
+          throw new \Exception("Cannot resolve method dependency: {$dependency->getName()}");
+        }
+      } else {
+        $results[] = $this->get($type->getName());
+      }
+    }
+
+    return $results;
   }
 }

@@ -14,6 +14,8 @@ class RouteCollection {
     /** @var RouteDefinition $route */
     foreach ($this->routes as $route) {
       if ($route->matches($method, $path)) {
+        $params = $route->extractParams($path);
+        $route->setParams($params);
         return $route;
       }
     }

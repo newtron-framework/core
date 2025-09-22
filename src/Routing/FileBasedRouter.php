@@ -4,12 +4,25 @@ declare(strict_types=1);
 namespace Newtron\Core\Routing;
 
 use Newtron\Core\Application\App;
+use Newtron\Core\Http\Request;
 use Newtron\Core\Http\Response;
 use Newtron\Core\Http\Status;
 
 class FileBasedRouter extends AbstractRouter {
   public function loadRoutes(): void {
     $this->scanDirectory(NEWTRON_ROUTES);
+  }
+
+  public function execute(RouteDefinition $route, Request $request): Response {
+    $handler = $route->getHandler();
+    $params = $route->getParams();
+
+    if (is_callable($handler) || is_string($handler)) {
+      $result = App::getContainer()->call($handler, ['params' => $params]);
+      return $this->normalizeResponse($result);
+    }
+
+    throw new \InvalidArgumentException('Invalid route handler type');
   }
 
   protected function scanDirectory(string $directory, string $prefix = ''): void {
@@ -47,6 +60,10 @@ class FileBasedRouter extends AbstractRouter {
       return $prefix ?: '/';
     }
 
+    $name = preg_replace('/\[([^\]]+)\]/', '{$1}', $name);
+
+    $name = preg_replace('/\{([^}]+)\?\}/', '{$1?}', $name);
+
     $name = preg_replace ('/[.]/', '/', $name);
 
     return $prefix . '/' . $name;
@@ -58,18 +75,14 @@ class FileBasedRouter extends AbstractRouter {
       return;
     }
 
-    $handler = function () use ($routeClass) {
+    $handler = function (array $params) use ($routeClass) {
       $request = App::getRequest();
       $method = strtolower($request->getMethod());
       if (!method_exists($routeClass, $method)) {
-        return;
+        return Response::create('Method not allowed', Status::NOT_ALLOWED);
       }
-      try {
-        $data = $routeClass->$method();
-        return $routeClass->render($data);
-      } catch (\Exception $e) {
-        return Response::create($e->getMessage(), Status::NOT_ALLOWED);
-      }
+      $data = $routeClass->$method(...$params);
+      return $routeClass->render($data);
     };
     $routes = Route::any($pattern, $handler);
     foreach ($routes as $route) {
