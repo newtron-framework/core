@@ -6,6 +6,8 @@ namespace Newtron\Core\Application;
 use Newtron\Core\Container\Container;
 use Newtron\Core\Container\ServiceProvider;
 use Newtron\Core\Container\ServiceProviderRegistry;
+use Newtron\Core\Http\Request;
+use Newtron\Core\Http\Response;
 
 class App {
   private static $instance;
@@ -13,10 +15,12 @@ class App {
   private static ServiceProviderRegistry $serviceProviderRegistry;
 
   private function __construct(string $rootPath) {
-    $this->loadEnv();
+    $this->loadEnv($rootPath);
 
-    $this->container = new Container();
-    $this->serviceProviderRegistry = new ServiceProviderRegistry($this->container);
+    $this->defineConstants($rootPath);
+
+    static::$container = new Container();
+    static::$serviceProviderRegistry = new ServiceProviderRegistry(static::$container);
     $this->registerServices();
   }
 
@@ -34,6 +38,11 @@ class App {
 
   public static function run(): void {
     self::$serviceProviderRegistry->boot();
+
+    $request = new Request();
+    self::$container->instance(Request::class, $request);
+
+    Response::create("Path requested: " . $request->getPath())->send();
   }
 
   public static function getVersion(): string {
@@ -44,8 +53,12 @@ class App {
     return self::$container;
   }
 
-  private function loadEnv(): void {
-    $path = $this->rootPath . '/.env';
+  public static function getRequest(): Request {
+    return self::$container->get(Request::class);
+  }
+
+  private function loadEnv(string $rootPath): void {
+    $path = $rootPath . '/.env';
 
     if (!file_exists($path)) {
       return;
@@ -77,6 +90,10 @@ class App {
         $_ENV[$key] = $value;
       }
     }
+  }
+
+  private function defineConstants(string $rootPath): void {
+    define('NEWTRON_ROOT', $rootPath);
   }
 
   private function registerServices(): void {

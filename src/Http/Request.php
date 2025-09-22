@@ -15,10 +15,10 @@ class Request {
   protected ?string $body;
 
   public function __construct() {
+    $this->server = $_SERVER ?? [];
     $this->method = $_SERVER['REQUEST_METHOD'];
     $this->headers = $this->parseHeaders();
     $this->cookies = $_COOKIE ?? [];
-    $this->server = $_SERVER ?? [];
     $this->uri = $_SERVER['REQUEST_URI'];
     $this->get = $_GET ?? [];
     $this->post = $_POST ?? [];

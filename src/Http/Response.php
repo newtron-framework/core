@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Newtron\Core\Http;
 
 class Response {
-  protected int $statusCode = Status::OK;
+  protected int $statusCode = Status::OK->value;
   protected array $headers = [];
   protected string $content = '';
   protected array $cookies = [];
@@ -13,7 +13,10 @@ class Response {
     return $this->statusCode;
   }
 
-  public function setStatusCode(int $statusCode): self {
+  public function setStatusCode(Status|int $statusCode): self {
+    if ($statusCode instanceof Status) {
+      $statusCode = $statusCode->value;
+    }
     $this->statusCode = $statusCode;
     return $this;
   }
@@ -47,28 +50,40 @@ class Response {
     return $this;
   }
 
-  public function setJson(array $data, int $statusCode = Status::OK, int $options = 0): self {
+  public function setJson(array $data, Status|int $statusCode = Status::OK, int $options = 0): self {
+    if ($statusCode instanceof Status) {
+      $statusCode = $statusCode->value;
+    }
     $this->setStatusCode($statusCode);
     $this->setHeader('Content-Type', 'application/json');
     $this->setContent(json_encode($data, $options));
     return $this;
   }
 
-  public function setHtml(string $html, int $statusCode = Status::OK): self {
+  public function setHtml(string $html, Status|int $statusCode = Status::OK): self {
+    if ($statusCode instanceof Status) {
+      $statusCode = $statusCode->value;
+    }
     $this->setStatusCode($statusCode);
     $this->setHeader('Content-Type', 'text/html; charset=utf-8');
     $this->setContent($html);
     return $this;
   }
 
-  public function setText(string $text, int $statusCode = Status::OK): self {
+  public function setText(string $text, Status|int $statusCode = Status::OK): self {
+    if ($statusCode instanceof Status) {
+      $statusCode = $statusCode->value;
+    }
     $this->setStatusCode($statusCode);
     $this->setHeader('Content-Type', 'text/plain; charset=utf-8');
     $this->setContent($text);
     return $this;
   }
 
-  public function redirect(string $url, int $statusCode = Status::FOUND): self {
+  public function redirect(string $url, Status|int $statusCode = Status::FOUND): self {
+    if ($statusCode instanceof Status) {
+      $statusCode = $statusCode->value;
+    }
     $this->setStatusCode($statusCode);
     $this->setHeader('Location', $url);
     return $this;
@@ -111,7 +126,10 @@ class Response {
     echo $this->content;
   }
 
-  public static function create(string $content = '', int $statusCode = Status::OK, array $headers = []): self {
+  public static function create(string $content = '', Status|int $statusCode = Status::OK, array $headers = []): self {
+    if ($statusCode instanceof Status) {
+      $statusCode = $statusCode->value;
+    }
     $response = new self;
     $response->setContent($content);
     $response->setStatusCode($statusCode);
@@ -119,11 +137,17 @@ class Response {
     return $response;
   }
 
-  public static function createJson(array $data, int $statusCode = Status::OK, int $options = 0): self {
+  public static function createJson(array $data, Status|int $statusCode = Status::OK, int $options = 0): self {
+    if ($statusCode instanceof Status) {
+      $statusCode = $statusCode->value;
+    }
     return (new self)->setJson($data, $statusCode, $options);
   }
 
-  public static function createRedirect(string $url, int $statusCode = Status::FOUND): self {
+  public static function createRedirect(string $url, Status|int $statusCode = Status::FOUND): self {
+    if ($statusCode instanceof Status) {
+      $statusCode = $statusCode->value;
+    }
     return (new self)->redirect($url, $statusCode);
   }
 }
