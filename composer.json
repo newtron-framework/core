@@ -1,0 +1,12 @@
+{
+  "name": "newtron/core",
+  "type": "library",
+  "autoload": {
+    "psr-4": {
+      "Newtron\\Core\\": "src/"
+    }
+  },
+  "require": {
+    "composer-runtime-api": "*"
+  }
+}
