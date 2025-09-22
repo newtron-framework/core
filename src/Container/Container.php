@@ -57,6 +57,42 @@ class Container {
     return isset($this->services[$abstract]) || isset($this->instances[$abstract]) || class_exists($abstract);
   }
 
+  public function call(callable|array|string $callback, array $parameters = []): mixed {
+    if (is_array($callback) && count($callback) === 2) {
+      [$class, $method] = $callback;
+
+      if (is_string($class)) {
+        $class = $this->get($class);
+      }
+
+      $callback = [$class, $method];
+    }
+
+    if (!is_callable($callback)) {
+      throw new \Exception('Callback is not callable');
+    }
+
+    return $this->callMethod($callback, $parameters);
+  }
+
+  private function callMethod(callable $callback, array $parameters = []): mixed {
+    if (is_array($callback)) {
+      $reflector = new \ReflectionMethod($callback[0], $callback[1]);
+    } else {
+      $reflector = new \ReflectionFunction($callback);
+    }
+
+    $dependencies = $reflector->getParameters();
+
+    if (empty($dependencies)) {
+      return call_user_func($callback);
+    }
+
+    $resolvedDependencies = $this->resolveMethodDependencies($dependencies, $parameters);
+
+    return call_user_func_array($callback, $resolvedDependencies);
+  }
+
   private function resolve(string $abstract): object {
     if (isset($this->services[$abstract])) {
       $concrete = $this->services[$abstract]['concrete'];
@@ -83,7 +119,7 @@ class Container {
     if (!isset($this->reflectionCache[$className])) {
       try {
         $reflector = new \ReflectionClass($className);
-      } catch (\RuntimeException $e) {
+      } catch (\Exception $e) {
         throw new \RuntimeException("Cannot reflect class '{$className}': " . $e->getMessage());
       }
 
@@ -180,5 +216,30 @@ class Container {
     }
 
     return $dependencies;
+  }
+
+  private function resolveMethodDependencies(array $dependencies, array $parameters = []): array {
+    $results = [];
+
+    foreach ($dependencies as $dependency) {
+      if (array_key_exists($dependency->getName(), $parameters)) {
+        $results[] = $parameters[$dependency->getName()];
+        continue;
+      }
+
+      $type = $dependency->getType();
+
+      if (is_null($type) || $type->isBuiltin()) {
+        if ($dependency->isDefaultValueAvailable()) {
+          $results[] = $dependency->getDefaultValue();
+        } else {
+          throw new \Exception("Cannot resolve method dependency: {$dependency->getName()}");
+        }
+      } else {
+        $results[] = $this->get($type->getName());
+      }
+    }
+
+    return $results;
   }
 }
