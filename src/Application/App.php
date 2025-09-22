@@ -8,6 +8,9 @@ use Newtron\Core\Container\ServiceProvider;
 use Newtron\Core\Container\ServiceProviderRegistry;
 use Newtron\Core\Http\Request;
 use Newtron\Core\Http\Response;
+use Newtron\Core\Http\Status;
+use Newtron\Core\Routing\AbstractRouter;
+use Newtron\Core\Routing\RouterServiceProvider;
 
 class App {
   private static $instance;
@@ -35,7 +38,7 @@ class App {
     return self::$instance;
   }
 
-  public static function addServiceProvider(ServiceProvider $provider): void {
+  public static function addServiceProvider(string $provider): void {
     static::$serviceProviderRegistry->register($provider);
   }
 
@@ -43,9 +46,19 @@ class App {
     static::$serviceProviderRegistry->boot();
 
     $request = new Request();
-    static::$container->instance(Request::class, $request);
+    static::getContainer()->instance(Request::class, $request);
 
-    Response::create("Path requested: " . $request->getPath() . "\n<pre>" . print_r(App::getConfig()->all(), true) . "</pre>")->send();
+    /** @var AbstractRouter $router */
+    $router = static::getContainer()->get(AbstractRouter::class);
+
+    $route = $router->dispatch($request);
+
+    if (!$route) {
+      Response::create('Not Found', Status::NOT_FOUND)->send();
+      return;
+    }
+
+    $router->execute($route, $request)->send();
   }
 
   public static function getVersion(): string {
@@ -61,7 +74,7 @@ class App {
   }
 
   public static function getRequest(): Request {
-    return static::$container->get(Request::class);
+    return static::getContainer()->get(Request::class);
   }
 
   private function loadEnv(string $rootPath): void {
@@ -102,6 +115,7 @@ class App {
   private function defineConstants(string $rootPath): void {
     define('NEWTRON_ROOT', $rootPath);
     define('NEWTRON_CONFIG', NEWTRON_ROOT . '/config');
+    define('NEWTRON_ROUTES', NEWTRON_ROOT . '/routes');
   }
 
   private function loadConfig(): void {
@@ -117,6 +131,6 @@ class App {
   }
 
   private function registerServices(): void {
-
+    $this->addServiceProvider(RouterServiceProvider::class);
   }
 }

@@ -57,6 +57,42 @@ class Container {
     return isset($this->services[$abstract]) || isset($this->instances[$abstract]) || class_exists($abstract);
   }
 
+  public function call(callable|array|string $callback, array $parameters = []): mixed {
+    if (is_array($callback) && count($callback) === 2) {
+      [$class, $method] = $callback;
+
+      if (is_string($class)) {
+        $class = $this->get($class);
+      }
+
+      $callback = [$class, $method];
+    }
+
+    if (!is_callable($callback)) {
+      throw new \Exception('Callback is not callable');
+    }
+
+    return $this->callMethod($callback, $parameters);
+  }
+
+  private function callMethod(callable $callback, array $parameters): mixed {
+    if (is_array($callback)) {
+      $reflector = new \ReflectionMethod($callback[0], $callback[1]);
+    } else {
+      $reflector = new \ReflectionFunction($callback);
+    }
+
+    $dependencies = $reflector->getParameters();
+
+    if (empty($dependencies)) {
+      return call_user_func($callback);
+    }
+
+    $resolvedDependencies = $this->resolveDependencies($dependencies, $parameters);
+
+    return call_user_func_array($callback, $resolvedDependencies);
+  }
+
   private function resolve(string $abstract): object {
     if (isset($this->services[$abstract])) {
       $concrete = $this->services[$abstract]['concrete'];
