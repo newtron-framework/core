@@ -7,6 +7,7 @@ use Newtron\Core\Application\App;
 use Newtron\Core\Http\Request;
 use Newtron\Core\Http\Response;
 use Newtron\Core\Http\Status;
+use Newtron\Core\Middleware\MiddlewarePipeline;
 
 abstract class AbstractRouter {
   protected RouteCollection $routes;
@@ -87,15 +88,27 @@ abstract class AbstractRouter {
   }
 
   public function execute(RouteDefinition $route, Request $request): Response {
-    $handler = $route->getHandler();
-    $params = $route->getParams();
+    $finalHandler = function (Request $request) use ($route) {
+      $handler = $route->getHandler();
+      $params = $route->getParams();
 
-    if (is_callable($handler) || is_string($handler)) {
-      $result = App::getContainer()->call($handler, $params);
-      return $this->normalizeResponse($result);
+      if (is_callable($handler) || is_string($handler)) {
+        $result = App::getContainer()->call($handler, $params);
+        return $this->normalizeResponse($result);
+      }
+
+      throw new \InvalidArgumentException('Invalid route handler type');
+    };
+
+    $pipeline = new MiddlewarePipeline();
+    foreach (App::getGlobalMiddleware() as $middleware) {
+      $pipeline->pipe($middleware);
+    }
+    foreach ($route->getMiddleware() as $middleware) {
+      $pipeline->pipe($middleware);
     }
 
-    throw new \InvalidArgumentException('Invalid route handler type');
+    return $pipeline->process($request, $finalHandler);
   }
 
   protected function addRoute(string $method, string $pattern, callable $handler): RouteDefinition {

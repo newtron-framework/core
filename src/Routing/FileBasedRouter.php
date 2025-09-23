@@ -7,6 +7,7 @@ use Newtron\Core\Application\App;
 use Newtron\Core\Http\Request;
 use Newtron\Core\Http\Response;
 use Newtron\Core\Http\Status;
+use Newtron\Core\Middleware\MiddlewarePipeline;
 
 class FileBasedRouter extends AbstractRouter {
   public function loadRoutes(): void {
@@ -14,15 +15,27 @@ class FileBasedRouter extends AbstractRouter {
   }
 
   public function execute(RouteDefinition $route, Request $request): Response {
-    $handler = $route->getHandler();
-    $params = $route->getParams();
+    $finalHandler = function (Request $request) use ($route) {
+      $handler = $route->getHandler();
+      $params = $route->getParams();
 
-    if (is_callable($handler) || is_string($handler)) {
-      $result = App::getContainer()->call($handler, ['params' => $params]);
-      return $this->normalizeResponse($result);
+      if (is_callable($handler) || is_string($handler)) {
+        $result = App::getContainer()->call($handler, ['params' => $params]);
+        return $this->normalizeResponse($result);
+      }
+
+      throw new \InvalidArgumentException('Invalid route handler type');
+    };
+
+    $pipeline = new MiddlewarePipeline();
+    foreach (App::getGlobalMiddleware() as $middleware) {
+      $pipeline->pipe($middleware);
+    }
+    foreach ($route->getMiddleware() as $middleware) {
+      $pipeline->pipe($middleware);
     }
 
-    throw new \InvalidArgumentException('Invalid route handler type');
+    return $pipeline->process($request, $finalHandler);
   }
 
   protected function scanDirectory(string $directory, string $prefix = ''): void {
@@ -70,7 +83,7 @@ class FileBasedRouter extends AbstractRouter {
   }
 
   protected function createFileRoutes(string $filePath, string $pattern): void {
-    $routeClass = include $filePath;
+    [$routeClass, $options] = include $filePath;
     if (!$routeClass instanceof FileRoute) {
       return;
     }
@@ -85,7 +98,13 @@ class FileBasedRouter extends AbstractRouter {
       return $routeClass->render($data);
     };
     $routes = Route::any($pattern, $handler);
+    /** @var RouteDefinition $route */
     foreach ($routes as $route) {
+      if (isset($options['middleware']) && is_array($options['middleware'])) {
+        foreach ($options['middleware'] as $middleware) {
+          $route->withMiddleware($middleware);
+        }
+      }
       $this->routes->add($route);
     }
   }
