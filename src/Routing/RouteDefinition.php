@@ -3,11 +3,14 @@ declare(strict_types=1);
 
 namespace Newtron\Core\Routing;
 
+use Newtron\Core\Middleware\MiddlewareInterface;
+
 class RouteDefinition {
   protected string $method;
   protected string $pattern;
   protected mixed $handler;
   protected array $params = [];
+  protected array $middleware = [];
 
   public function __construct(string $method, string $pattern, callable $handler) {
     $this->method = strtoupper($method);
@@ -33,6 +36,21 @@ class RouteDefinition {
 
   public function setParams(array $params): self {
     $this->params = $params;
+    return $this;
+  }
+
+  public function getMiddleware(): array {
+    return $this->middleware;
+  }
+
+  public function withMiddleware(string $middleware): self {
+    if (!class_exists($middleware)) {
+      throw new \InvalidArgumentException("Middleware '{$middleware}' not found");
+    }
+    if (!is_subclass_of($middleware, MiddlewareInterface::class)) {
+      throw new \InvalidArgumentException("Middleware '{$middleware}' must implement MiddlewareInterface");
+    }
+    $this->middleware[] = $middleware;
     return $this;
   }
 

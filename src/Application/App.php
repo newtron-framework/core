@@ -4,11 +4,11 @@ declare(strict_types=1);
 namespace Newtron\Core\Application;
 
 use Newtron\Core\Container\Container;
-use Newtron\Core\Container\ServiceProvider;
 use Newtron\Core\Container\ServiceProviderRegistry;
 use Newtron\Core\Http\Request;
 use Newtron\Core\Http\Response;
 use Newtron\Core\Http\Status;
+use Newtron\Core\Middleware\MiddlewareInterface;
 use Newtron\Core\Routing\AbstractRouter;
 use Newtron\Core\Routing\RouterServiceProvider;
 
@@ -17,6 +17,7 @@ class App {
   private static Container $container;
   private static ServiceProviderRegistry $serviceProviderRegistry;
   private static Config $config;
+  private static array $globalMiddleware = [];
 
   private function __construct(string $rootPath) {
     $this->loadEnv($rootPath);
@@ -40,6 +41,16 @@ class App {
 
   public static function addServiceProvider(string $provider): void {
     static::$serviceProviderRegistry->register($provider);
+  }
+  
+  public static function addGlobalMiddleware(string $middleware): void {
+    if (!class_exists($middleware)) {
+      throw new \InvalidArgumentException("Middleware '{$middleware}' not found");
+    }
+    if (!is_subclass_of($middleware, MiddlewareInterface::class)) {
+      throw new \InvalidArgumentException("Middleware '{$middleware}' must implement MiddlewareInterface");
+    }
+    static::$globalMiddleware[] = $middleware;
   }
 
   public static function run(): void {
@@ -71,6 +82,10 @@ class App {
 
   public static function getConfig(): Config {
     return static::$config;
+  }
+
+  public static function getGlobalMiddleware(): array {
+    return static::$globalMiddleware;
   }
 
   public static function getRequest(): Request {
