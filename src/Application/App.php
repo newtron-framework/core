@@ -9,6 +9,7 @@ use Newtron\Core\Http\Request;
 use Newtron\Core\Http\Response;
 use Newtron\Core\Http\Status;
 use Newtron\Core\Middleware\MiddlewareInterface;
+use Newtron\Core\Quark\QuarkServiceProvider;
 use Newtron\Core\Routing\AbstractRouter;
 use Newtron\Core\Routing\RouterServiceProvider;
 
@@ -129,8 +130,10 @@ class App {
 
   private function defineConstants(string $rootPath): void {
     define('NEWTRON_ROOT', $rootPath);
+    define('NEWTRON_CACHE', NEWTRON_ROOT . '/cache');
     define('NEWTRON_CONFIG', NEWTRON_ROOT . '/config');
     define('NEWTRON_ROUTES', NEWTRON_ROOT . '/routes');
+    define('NEWTRON_TEMPLATES', NEWTRON_ROOT . '/templates');
   }
 
   private function loadConfig(): void {
@@ -147,5 +150,6 @@ class App {
 
   private function registerServices(): void {
     $this->addServiceProvider(RouterServiceProvider::class);
+    $this->addServiceProvider(QuarkServiceProvider::class);
   }
 }
