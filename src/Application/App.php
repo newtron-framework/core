@@ -5,8 +5,10 @@ namespace Newtron\Core\Application;
 
 use Newtron\Core\Container\Container;
 use Newtron\Core\Container\ServiceProviderRegistry;
+use Newtron\Core\Error\ErrorHandler;
+use Newtron\Core\Error\HttpException;
+use Newtron\Core\Error\Logger;
 use Newtron\Core\Http\Request;
-use Newtron\Core\Http\Response;
 use Newtron\Core\Http\Status;
 use Newtron\Core\Middleware\MiddlewareInterface;
 use Newtron\Core\Quark\QuarkServiceProvider;
@@ -15,6 +17,8 @@ use Newtron\Core\Routing\RouterServiceProvider;
 
 class App {
   private static $instance;
+  private static Logger $logger;
+  private static ErrorHandler $errorHandler;
   private static Container $container;
   private static ServiceProviderRegistry $serviceProviderRegistry;
   private static Config $config;
@@ -26,6 +30,9 @@ class App {
     $this->defineConstants($rootPath);
 
     $this->loadConfig();
+
+    static::$logger = new Logger(NEWTRON_LOGS);
+    static::$errorHandler = new ErrorHandler(static::$logger, $this->getConfig()->get('app.debug', false));
 
     static::$container = new Container();
     static::$serviceProviderRegistry = new ServiceProviderRegistry(static::$container);
@@ -66,7 +73,8 @@ class App {
     $route = $router->dispatch($request);
 
     if (!$route) {
-      Response::create('Not Found', Status::NOT_FOUND)->send();
+      static::getLogger()->debug($request->getPath());
+      throw new HttpException(Status::NOT_FOUND, Status::NOT_FOUND->getText());
       return;
     }
 
@@ -75,6 +83,14 @@ class App {
 
   public static function getVersion(): string {
     return \Composer\InstalledVersions::getRootPackage()['version'];
+  }
+
+  public static function getLogger(): Logger {
+    return static::$logger;
+  }
+
+  public static function setErrorPage(Status|int $statusCode, string $template): void {
+    static::$errorHandler->setErrorPage($statusCode, $template);
   }
 
   public static function getContainer(): Container {
@@ -132,6 +148,7 @@ class App {
     define('NEWTRON_ROOT', $rootPath);
     define('NEWTRON_CACHE', NEWTRON_ROOT . '/cache');
     define('NEWTRON_CONFIG', NEWTRON_ROOT . '/config');
+    define('NEWTRON_LOGS', NEWTRON_ROOT . '/logs');
     define('NEWTRON_ROUTES', NEWTRON_ROOT . '/routes');
     define('NEWTRON_TEMPLATES', NEWTRON_ROOT . '/templates');
   }
