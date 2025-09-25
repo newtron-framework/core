@@ -9,6 +9,13 @@ use Newtron\Core\Http\Response;
 class MiddlewarePipeline {
   private array $middleware = [];
 
+  /**
+   * Add a middleware to the pipeline
+   *
+   * @param  string $middleware The fully qualified class name of the middleware to add
+   * @return MiddlewarePipeline The pipeline instance for chaining
+   * @throws \InvalidArgumentException If the middleware class does not exist or does not implement MiddlewareInterface
+   */
   public function pipe(string $middleware): self {
     if (!class_exists($middleware)) {
       throw new \InvalidArgumentException("Middleware '{$middleware}' not found");
@@ -20,6 +27,13 @@ class MiddlewarePipeline {
     return $this;
   }
 
+  /**
+   * Process the request through the middleware pipeline
+   *
+   * @param  Request  $request The current request
+   * @param  callable $handler The route handler
+   * @return Response
+   */
   public function process(Request $request, callable $handler): Response {
     $pipeline = array_reduce(
       array_reverse($this->middleware),

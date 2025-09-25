@@ -13,7 +13,13 @@ class QuarkCompiler {
     $this->registerBuiltinDirectives();
   }
 
-  public function compile(string $source, string $templatePath = ''): string {
+  /**
+   * Compile a template
+   *
+   * @param  string $source The template source
+   * @return string The compiled template
+   */
+  public function compile(string $source): string {
     $tokens = $this->tokenize($source);
     $php = "<?php\n";
 
@@ -34,10 +40,19 @@ class QuarkCompiler {
     return $php;
   }
 
+  /**
+   * Add a custom directive
+   *
+   * @param  string   $name     The directive name
+   * @param  callable $compiler The directive function
+   */
   public function addDirective(string $name, callable $compiler): void {
     $this->directives[$name] = $compiler;
   }
 
+  /**
+   * Register the builtin Quark directives
+   */
   private function registerBuiltinDirectives(): void {
     $this->directives['layout'] = function ($args) {
       $template = trim($args, '"\'');
@@ -85,6 +100,12 @@ class QuarkCompiler {
     };
   }
 
+  /**
+   * Tokenize template source
+   *
+   * @param  string $source The template source
+   * @return array The tokenized template
+   */
   private function tokenize(string $source): array {
     $tokens = [];
     $pattern = '/\{\{(.*?)\}\}|\{%(.*?)%\}/s';
@@ -120,6 +141,13 @@ class QuarkCompiler {
     return $tokens;
   }
 
+  /**
+   * Parse a directive
+   *
+   * @param  string $directive The directive string
+   * @return array The parsed directive
+   * @throws \Exception If the directive syntax is invalid
+   */
   private function parseDirective(string $directive): array {
     if (preg_match('/^(\w+)(?:\s+(.+))?$/', $directive, $matches)) {
       return [
@@ -132,6 +160,12 @@ class QuarkCompiler {
     throw new \Exception("Invalid directive syntax: {$directive}");
   }
 
+  /**
+   * Compile an expression
+   *
+   * @param  string $expression The expression string
+   * @return string The compiled expression
+   */
   private function compileExpression(string $expression): string {
     if (strpos($expression, '|') !== false) {
       return $this->compilePipeExpression($expression);
@@ -141,6 +175,12 @@ class QuarkCompiler {
     return "echo \$__quark->escape({$variable});\n";
   }
 
+  /**
+   * Compile an expression that uses pipes
+   *
+   * @param  string $expression The pipe expression string
+   * @return string The compiled expression
+   */
   private function compilePipeExpression(string $expression): string {
     $parts = array_map('trim', explode('|', $expression));
     $variable = array_shift($parts);
@@ -166,6 +206,12 @@ class QuarkCompiler {
     return $php;
   }
 
+  /**
+   * Normalize a PHP variable string
+   *
+   * @param  string $expression The expression to normalize
+   * @return string The normalized string
+   */
   private function normalizeVariable(string $expression): string {
     $expression = trim($expression);
 
@@ -192,6 +238,14 @@ class QuarkCompiler {
     return $expression;
   }
 
+  /**
+   * Compile a directive
+   *
+   * @param  string $name The directive name 
+   * @param  string $args Arguments for the directive
+   * @return string The directive result
+   * @throws \Exception If the directive is unknown
+   */
   private function compileDirective(string $name, string $args): string {
     if (isset($this->directives[$name])) {
       return call_user_func($this->directives[$name], $args);

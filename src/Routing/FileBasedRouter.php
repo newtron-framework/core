@@ -10,10 +10,21 @@ use Newtron\Core\Http\Status;
 use Newtron\Core\Middleware\MiddlewarePipeline;
 
 class FileBasedRouter extends AbstractRouter {
+  /**
+   * Load file-based routes from route files
+   */
   public function loadRoutes(): void {
     $this->scanDirectory(NEWTRON_ROUTES);
   }
 
+  /**
+   * Execute a route handler
+   *
+   * @param  RouteDefinition $route   The RouteDefinition to be executed
+   * @param  Request         $request The HTTP request
+   * @return Response The HTTP response
+   * @throws \InvalidArgumentException If the handler is of an invalid type
+   */
   public function execute(RouteDefinition $route, Request $request): Response {
     $finalHandler = function (Request $request) use ($route) {
       $handler = $route->getHandler();
@@ -38,12 +49,18 @@ class FileBasedRouter extends AbstractRouter {
     return $pipeline->process($request, $finalHandler);
   }
 
+  /**
+   * Scan a directory for route files
+   *
+   * @param  string $directory The directory to scan
+   * @param  string $prefix    The route prefix
+   */
   protected function scanDirectory(string $directory, string $prefix = ''): void {
     if (!is_dir($directory)) {
       return;
     }
 
-    $files = scandir(NEWTRON_ROUTES);
+    $files = scandir($directory);
 
     foreach ($files as $file) {
       if ($file === '.' || $file === '..') {
@@ -62,6 +79,13 @@ class FileBasedRouter extends AbstractRouter {
     }
   }
 
+  /**
+   * Generate a route pattern from a route file
+   *
+   * @param  string $filename The route file
+   * @param  string $prefix   The route prefix
+   * @return string The generated route pattern
+   */
   protected function generateRouteFromFile(string $filename, string $prefix): string {
     $name = pathinfo($filename, PATHINFO_FILENAME);
 
@@ -82,6 +106,12 @@ class FileBasedRouter extends AbstractRouter {
     return $prefix . '/' . $name;
   }
 
+  /**
+   * Create route definitions for a route file
+   *
+   * @param  string $filePath The route file
+   * @param  string $pattern  The route pattern
+   */
   protected function createFileRoutes(string $filePath, string $pattern): void {
     [$routeClass, $options] = include $filePath;
     if (!$routeClass instanceof FileRoute) {

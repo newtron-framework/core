@@ -10,6 +10,13 @@ class Container {
   private array $reflectionCache = [];
   private array $dependencyCache = [];
 
+  /**
+   * Create a binding for a service
+   *
+   * @param  string $abstract  The abstract type or interface name
+   * @param  mixed  $concrete  The concrete implementation (class name, closure)
+   * @param  bool   $singleton Whether the binding should be treated as a singleton
+   */
   public function bind(string $abstract, $concrete = null, bool $singleton = false): void {
     if ($concrete === null) {
       $concrete = $abstract;
@@ -21,14 +28,32 @@ class Container {
     ];
   }
 
+  /**
+   * Create a singleton binding
+   *
+   * @param  string $abstract The abstract type or interface name
+   * @param  mixed  $concrete The concrete implementation (class name, closure)
+   */
   public function singleton(string $abstract, $concrete = null): void {
     $this->bind($abstract, $concrete, true);
   }
 
+  /**
+   * Register an existing instance as a singleton
+   *
+   * @param  string $abstract The abstract type or interface name
+   * @param  mixed  $instance The instance to register
+   */
   public function instance(string $abstract, object $instance): void {
     $this->instances[$abstract] = $instance;
   }
 
+  /**
+   * Get the given type from the container
+   *
+   * @param  string $abstract The abstract type to resolve
+   * @return mixed The resolved instance
+   */
   public function get(string $abstract): object {
     if (isset($this->instances[$abstract])) {
       return $this->instances[$abstract];
@@ -53,10 +78,24 @@ class Container {
     }
   }
 
+  /**
+   * Check if an abstract type has been bound
+   *
+   * @param  string $abstract The abstract type to check
+   * @return bool True if the type is bound, false otherwise
+   */
   public function has(string $abstract): bool {
     return isset($this->services[$abstract]) || isset($this->instances[$abstract]) || class_exists($abstract);
   }
 
+  /**
+   * Call a method with dependency injection
+   *
+   * @param  callable|array|string  $callback   The callback to call
+   * @param  array                  $parameters Additional parameters to pass to the method
+   * @return mixed The result of the method call
+   * @throws \Exception If the callback is not callable or dependencies cannot be resolved 
+   */
   public function call(callable|array|string $callback, array $parameters = []): mixed {
     if (is_array($callback) && count($callback) === 2) {
       [$class, $method] = $callback;
@@ -75,6 +114,13 @@ class Container {
     return $this->callMethod($callback, $parameters);
   }
 
+  /**
+   * Call a method with dependency injection
+   *
+   * @param  callable  $callback   The callback to call
+   * @param  array     $parameters Additional parameters to pass to the method
+   * @return mixed The result of the method call
+   */
   private function callMethod(callable $callback, array $parameters = []): mixed {
     if (is_array($callback)) {
       $reflector = new \ReflectionMethod($callback[0], $callback[1]);
@@ -93,6 +139,14 @@ class Container {
     return call_user_func_array($callback, $resolvedDependencies);
   }
 
+  /**
+   * Resolve the given type from the container
+   *
+   * @param  string $abstract   The abstract type to resolve
+   * @return mixed The resolved instance
+   * @throws \InvalidArgumentException If the concrete definition is invalid
+   * @throws \RuntimeException If the type cannot be resolved
+   */
   private function resolve(string $abstract): object {
     if (isset($this->services[$abstract])) {
       $concrete = $this->services[$abstract]['concrete'];
@@ -115,6 +169,13 @@ class Container {
     throw new \RuntimeException("Service '{$abstract}' not found and cannot be resolved");
   }
 
+  /**
+   * Create an instance of the given class
+   *
+   * @param  string $className  The class to build
+   * @return object The built instance
+   * @throws \RuntimeException If the target is not instantiable or cannot be reflected
+   */
   private function build(string $className): object {
     if (!isset($this->reflectionCache[$className])) {
       try {
@@ -148,6 +209,14 @@ class Container {
     return $reflector->newInstanceArgs($dependencies);
   }
 
+  /**
+   * Resolve all dependencies for a class method
+   *
+   * @param  \ReflectionMethod $method     The reflection method
+   * @param  string            $className  The class name
+   * @return array Array of resolved dependency instances
+   * @throws \RuntimeException If a parameter is a union type (union types are not supported)
+   */
   private function resolveDependencies(\ReflectionMethod $method, string $className): array {
     $cacheKey = "{$className}::{$method->getName()}";
 
@@ -218,6 +287,13 @@ class Container {
     return $dependencies;
   }
 
+  /**
+   * Resolve all dependencies passed to a method, using passed parameters
+   *
+   * @param  array $dependencies The method dependencies
+   * @param  array $parameters   The parameters that were passed to the method
+   * @return array Array of resolved dependency instances
+   */
   private function resolveMethodDependencies(array $dependencies, array $parameters = []): array {
     $results = [];
 

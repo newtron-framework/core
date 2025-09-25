@@ -43,6 +43,12 @@ class App {
     $this->registerServices();
   }
 
+  /**
+   * Create an application, or get the current one if it exists
+   *
+   * @param  string $root The root directory of the application
+   * @return App The created or existing application instance
+   */
   public static function create(string $root): self {
     if (!isset(self::$instance)) {
       self::$instance = new self($root);
@@ -51,10 +57,21 @@ class App {
     return self::$instance;
   }
 
+  /**
+   * Add a service provider to the application
+   *
+   * @param  string $provider The fully qualified class name of the service provider to register
+   */
   public static function addServiceProvider(string $provider): void {
     static::$serviceProviderRegistry->register($provider);
   }
   
+  /**
+   * Add a global middleware to the application
+   *
+   * @param  string $middleware The fully qualified class name of the middleware to add
+   * @throws \InvalidArgumentException If the middleware class does not exist or does not implement MiddlewareInterface
+   */
   public static function addGlobalMiddleware(string $middleware): void {
     if (!class_exists($middleware)) {
       throw new \InvalidArgumentException("Middleware '{$middleware}' not found");
@@ -65,6 +82,10 @@ class App {
     static::$globalMiddleware[] = $middleware;
   }
 
+  /**
+   * Run the application
+   * Read the incoming request and attempt to route
+   */
   public static function run(): void {
     static::$serviceProviderRegistry->boot();
 
@@ -85,42 +106,93 @@ class App {
     $router->execute($route, $request)->send();
   }
 
+  /**
+   * Get the Newtron version
+   *
+   * @return string The version of Newtron
+   */
   public static function getVersion(): string {
     return \Composer\InstalledVersions::getRootPackage()['version'];
   }
 
+  /**
+   * Get the application's logger instance
+   *
+   * @return Logger The logger instance
+   */
   public static function getLogger(): Logger {
     return static::$logger;
   }
 
+  /**
+   * Set a template to use for a given error status code
+   *
+   * @param  Status|int $statusCode The status code to register the template for
+   * @param  string $template The name of a Quark template to use
+   */
   public static function setErrorPage(Status|int $statusCode, string $template): void {
     static::$errorHandler->setErrorPage($statusCode, $template);
   }
 
+  /**
+   * Get the application's DI container
+   *
+   * @return Container The DI container
+   */
   public static function getContainer(): Container {
     return static::$container;
   }
 
+  /**
+   * Get the application's config
+   *
+   * @return Config The application's config
+   */
   public static function getConfig(): Config {
     return static::$config;
   }
 
+  /**
+   * Get all registered global middlewares
+   *
+   * @return array The list of registered global middlewares
+   */
   public static function getGlobalMiddleware(): array {
     return static::$globalMiddleware;
   }
 
+  /**
+   * Get the incoming request object
+   *
+   * @return Request The incoming request
+   */
   public static function getRequest(): Request {
     return static::getContainer()->get(Request::class);
   }
 
+  /**
+   * Get the application's document interface
+   *
+   * @return Document The document interface
+   */
   public static function getDocument(): Document {
     return static::getContainer()->get(Document::class);
   }
 
+  /**
+   * Get the application's asset manager
+   *
+   * @return AssetManager The asset manager
+   */
   public static function getAssetManager(): AssetManager {
     return static::getContainer()->get(AssetManager::class);
   }
 
+  /**
+   * Load the application environment
+   *
+   * @param  string $rootPath The root directory of the application
+   */
   private function loadEnv(string $rootPath): void {
     $path = $rootPath . '/.env';
 
@@ -156,15 +228,25 @@ class App {
     }
   }
 
+  /**
+   * Define constants for the application
+   *
+   * @param  string $rootPath The root directory of the application
+   */
   private function defineConstants(string $rootPath): void {
-    define('NEWTRON_ROOT', $rootPath);
-    define('NEWTRON_CACHE', NEWTRON_ROOT . '/cache');
-    define('NEWTRON_CONFIG', NEWTRON_ROOT . '/config');
-    define('NEWTRON_LOGS', NEWTRON_ROOT . '/logs');
-    define('NEWTRON_ROUTES', NEWTRON_ROOT . '/routes');
-    define('NEWTRON_TEMPLATES', NEWTRON_ROOT . '/templates');
+    if (!defined('NEWTRON_ROOT')) {
+      define('NEWTRON_ROOT', $rootPath);
+      define('NEWTRON_CACHE', NEWTRON_ROOT . '/cache');
+      define('NEWTRON_CONFIG', NEWTRON_ROOT . '/config');
+      define('NEWTRON_LOGS', NEWTRON_ROOT . '/logs');
+      define('NEWTRON_ROUTES', NEWTRON_ROOT . '/routes');
+      define('NEWTRON_TEMPLATES', NEWTRON_ROOT . '/templates');
+    }
   }
 
+  /**
+   * Load the application's config files
+   */
   private function loadConfig(): void {
     $files = glob(NEWTRON_CONFIG . '/*.php');
 
@@ -177,6 +259,9 @@ class App {
     static::$config = new Config($items);
   }
 
+  /**
+   * Register builtin service providers
+   */
   private function registerServices(): void {
     $this->addServiceProvider(AssetServiceProvider::class);
     $this->addServiceProvider(DocumentServiceProvider::class);
