@@ -5,6 +5,8 @@ namespace Newtron\Core\Application;
 
 use Newtron\Core\Container\Container;
 use Newtron\Core\Container\ServiceProviderRegistry;
+use Newtron\Core\Document\Document;
+use Newtron\Core\Document\DocumentServiceProvider;
 use Newtron\Core\Error\ErrorHandler;
 use Newtron\Core\Error\HttpException;
 use Newtron\Core\Error\Logger;
@@ -109,6 +111,10 @@ class App {
     return static::getContainer()->get(Request::class);
   }
 
+  public static function getDocument(): Document {
+    return static::getContainer()->get(Document::class);
+  }
+
   private function loadEnv(string $rootPath): void {
     $path = $rootPath . '/.env';
 
@@ -166,6 +172,7 @@ class App {
   }
 
   private function registerServices(): void {
+    $this->addServiceProvider(DocumentServiceProvider::class);
     $this->addServiceProvider(RouterServiceProvider::class);
     $this->addServiceProvider(QuarkServiceProvider::class);
   }
