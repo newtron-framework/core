@@ -6,6 +6,7 @@ namespace Newtron\Core\Document;
 use Newtron\Core\Application\App;
 
 class Document {
+  protected AssetManager $assetManager;
   protected string $title;
   protected string $description;
   protected string $lang;
@@ -16,11 +17,16 @@ class Document {
   protected array $postBodyScripts = [];
   protected array $inlineStyles = [];
 
-  public function __construct() {
+  public function __construct(AssetManager $assetManager) {
+    $this->assetManager = $assetManager;
     $this->title = App::getConfig()->get('app.name', 'Newtron');
     $this->description = '';
     $this->lang = App::getConfig()->get('app.language', 'en');
     $this->setFavicon('/favicon.ico');
+  }
+
+  public function getAssetManager(): AssetManager {
+    return $this->assetManager;
   }
 
   public function getTitle(): string {
@@ -180,8 +186,16 @@ class Document {
       $html .= "<meta property=\"{$property}\" content=\"{$content}\">\n";
     }
 
+    foreach ($this->assetManager->getStylesheets() as $_ => $style) {
+      $html .= "<link href=\"{$style['href']}\" rel=\"stylesheet\">\n";
+    }
+
     foreach ($this->links as $href => $opts) {
       $html .= "<link href=\"{$href}\" rel=\"{$opts['rel']}\" {$this->implodeAttributes($opts['attributes'])}>\n";
+    }
+
+    foreach ($this->assetManager->getScripts() as $_ => $script) {
+      $html .= "<script src=\"{$script['src']}\" {$this->implodeAttributes($script['attributes'])}></script>\n";
     }
 
     foreach ($this->headScripts as $script) {
@@ -194,6 +208,20 @@ class Document {
 
     foreach ($this->inlineStyles as $style) {
       $html .= "<style>{$style['content']}</style>\n";
+    }
+
+    return $html;
+  }
+
+  public function renderBodyScripts(): string {
+    $html = '';
+
+    foreach ($this->postBodyScripts as $script) {
+      if ($script['inline']) {
+        $html .= "<script {$this->implodeAttributes($script['attributes'])}>{$script['content']}</script>\n";
+      } else {
+        $html .= "<script src=\"{$script['src']}\" {$this->implodeAttributes($script['attributes'])}></script>\n";
+      }
     }
 
     return $html;

@@ -5,6 +5,8 @@ namespace Newtron\Core\Application;
 
 use Newtron\Core\Container\Container;
 use Newtron\Core\Container\ServiceProviderRegistry;
+use Newtron\Core\Document\AssetManager;
+use Newtron\Core\Document\AssetServiceProvider;
 use Newtron\Core\Document\Document;
 use Newtron\Core\Document\DocumentServiceProvider;
 use Newtron\Core\Error\ErrorHandler;
@@ -115,6 +117,10 @@ class App {
     return static::getContainer()->get(Document::class);
   }
 
+  public static function getAssetManager(): AssetManager {
+    return static::getContainer()->get(AssetManager::class);
+  }
+
   private function loadEnv(string $rootPath): void {
     $path = $rootPath . '/.env';
 
@@ -172,6 +178,7 @@ class App {
   }
 
   private function registerServices(): void {
+    $this->addServiceProvider(AssetServiceProvider::class);
     $this->addServiceProvider(DocumentServiceProvider::class);
     $this->addServiceProvider(RouterServiceProvider::class);
     $this->addServiceProvider(QuarkServiceProvider::class);

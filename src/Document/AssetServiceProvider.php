@@ -6,12 +6,10 @@ namespace Newtron\Core\Document;
 use Newtron\Core\Container\Container;
 use Newtron\Core\Container\ServiceProvider;
 
-class DocumentServiceProvider extends ServiceProvider {
+class AssetServiceProvider extends ServiceProvider {
   public function register(Container $container): void {
-    $container->singleton(Document::class, function (Container $c) {
-      $assetManager = $c->get(AssetManager::class);
-
-      return new Document($assetManager);
+    $container->singleton(AssetManager::class, function (Container $c) {
+      return new AssetManager();
     });
   }
 }
