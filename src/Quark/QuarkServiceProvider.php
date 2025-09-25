@@ -22,6 +22,7 @@ class QuarkServiceProvider extends ServiceProvider {
 
     $engine->setRootLayout('_root');
     $engine->addGlobal('request', App::getRequest());
+    $engine->addGlobal('document', App::getDocument());
 
     Quark::setEngine($engine);
   }
