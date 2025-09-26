@@ -8,8 +8,6 @@ use Newtron\Core\Container\ServiceProvider;
 
 class AssetServiceProvider extends ServiceProvider {
   public function register(Container $container): void {
-    $container->singleton(AssetManager::class, function (Container $c) {
-      return new AssetManager();
-    });
+    $container->singleton(AssetManager::class);
   }
 }

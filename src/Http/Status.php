@@ -21,6 +21,11 @@ enum Status: int {
   case BAD_GATEWAY = 502;
   case UNAVAILABLE = 503;
 
+  /**
+   * Get the status code message
+   *
+   * @return string The status message
+   */
   public function getText(): string {
     /* @var Status $this */
     return match($this) {

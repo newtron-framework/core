@@ -32,18 +32,40 @@ class QuarkEngine {
     $this->registerBuiltinFilters();
   }
 
+  /**
+   * Get the Quark compiler
+   *
+   * @return QuarkCompiler
+   */
   public function getCompiler(): QuarkCompiler {
     return $this->compiler;
   }
 
+  /**
+   * Set the template to use as the root layout
+   *
+   * @param  string $layout The template to use
+   */
   public function setRootLayout(string $layout): void {
     $this->rootLayout = $layout;
   }
 
+  /**
+   * Skip rendering the root layout
+   */
   public function skipRootLayout(): void {
     $this->skipRootLayout = true;
   }
 
+  /**
+   * Render a template
+   *
+   * @param  string $template The name of the template to render
+   * @param  array  $data     Data to make available to the template
+   * @param  array  $outlets  Outlet content for the current render
+   * @param  bool   $isNested Whether this is a nested render call
+   * @return string The rendered template
+   */
   public function render(string $template, array $data = [], array $outlets = [], bool $isNested = false): string {
     $templatePath = $this->templateDir . '/' . ltrim(str_replace('.', '/', $template), '/') . '.quark.html';
 
@@ -51,7 +73,6 @@ class QuarkEngine {
       throw new \Exception("Template '{$template}' not found");
     }
 
-    $this->skipRootLayout = false;
     $this->layouts = [];
     $this->outlets = $outlets;
     $this->currentSlot = '';
@@ -87,13 +108,26 @@ class QuarkEngine {
       return $this->render($this->rootLayout, $data, $this->outlets, true);
     }
 
+    $this->skipRootLayout = false;
     return $content;
   }
 
+  /**
+   * Set the layout for the current template
+   *
+   * @param  string $layout The template to use as the layout
+   */
   public function setLayout(string $layout): void {
     $this->layouts[] = $layout;
   }
 
+  /**
+   * Render an outlet's content
+   *
+   * @param  string $name The outlet name
+   * @param  array  $data Data to make available in the render
+   * @return string The rendered outlet content
+   */
   public function renderOutlet(string $name = 'default', array $data = []): string {
     if (isset($this->slots[$name])) {
       return $this->slots[$name];
@@ -112,11 +146,19 @@ class QuarkEngine {
     return '';
   }
 
+  /**
+   * Start a slot block
+   *
+   * @param  string $name The slot name
+   */
   public function startSlot(string $name): void {
     $this->currentSlot = $name;
     ob_start();
   }
 
+  /**
+   * End the current slot block
+   */
   public function endSlot(): void {
     if ($this->currentSlot) {
       $content = ob_get_clean();
@@ -125,10 +167,24 @@ class QuarkEngine {
     }
   }
 
+  /**
+   * Get the content for a slot
+   *
+   * @param  string $name    The slot name
+   * @param  string $default The content to use if the slot is not set
+   * @return string The slot content
+   */
   public function getSlot(string $name, string $default = ''): string {
     return $this->slots[$name] ?? $default;
   }
 
+  /**
+   * Escape a value for rendering
+   *
+   * @param  mixed  $value   The value to escape
+   * @param  string $context The context to use for escaping
+   * @return string The escaped string
+   */
   public function escape(mixed $value, string $context = 'html'): string {
     if ($value === null || is_bool($value)) {
       return $value ? '1' : '';
@@ -151,6 +207,14 @@ class QuarkEngine {
     }
   }
 
+  /**
+   * Apply a filter to a value
+   *
+   * @param  string $name  The filter name
+   * @param  mixed  $value The value to filter
+   * @param  any    $args  Additional arguments for the filter
+   * @return mixed The result of the filter
+   */
   public function applyFilter(string $name, mixed $value, ...$args): mixed {
     if (!isset($this->filters[$name])) {
       throw new \Exception("Unknown filter: {$name}");
@@ -159,14 +223,29 @@ class QuarkEngine {
     return call_user_func($this->filters[$name], $value, ...$args);
   }
 
+  /**
+   * Add a custom filter
+   *
+   * @param  string   $name     The filter name
+   * @param  callable $callback The filter function
+   */
   public function addFilter(string $name, callable $callback): void {
     $this->filters[$name] = $callback;
   }
 
+  /**
+   * Make a value globally available in templates
+   *
+   * @param  string $name  Identifier for the value
+   * @param  mixed  $value The value to make available
+   */
   public function addGlobal(string $name, mixed $value): void {
     $this->globals[$name] = $value;
   }
 
+  /**
+   * Register the builtin Quark filters
+   */
   private function registerBuiltinFilters(): void {
     $this->filters['upper'] = fn($v) => strtoupper($v);
     $this->filters['lower'] = fn($v) => strtolower($v);
@@ -190,6 +269,13 @@ class QuarkEngine {
     $this->filters['dump'] = fn($v) => '<pre>' . $this->escape(print_r($v, true), 'html') . '</pre>';
   }
 
+  /**
+   * Compile a template
+   * Results are cached and only recompiled when the file has been modified
+   *
+   * @param  string $templatePath The template file to compile
+   * @return string The compiled template
+   */
   private function compile(string $templatePath): string {
     $cacheKey = md5($templatePath);
     $cachePath = $this->cacheDir . '/' . $cacheKey . '.php';
@@ -201,7 +287,7 @@ class QuarkEngine {
     }
 
     $source = file_get_contents($templatePath);
-    $compiled = $this->compiler->compile($source, $templatePath);
+    $compiled = $this->compiler->compile($source);
 
     file_put_contents($cachePath, $compiled);
     return $cachePath;

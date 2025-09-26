@@ -16,6 +16,11 @@ class HttpException extends \Exception {
     $this->statusCode = $statusCode;
   }
 
+  /**
+   * Get the HTTP status code
+   *
+   * @return int The status code
+   */
   public function getStatusCode(): int {
     return $this->statusCode;
   }
