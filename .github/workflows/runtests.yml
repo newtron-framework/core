@@ -1,0 +1,21 @@
+name: Run unit tests
+
+on:
+  push:
+    branches:
+      - '!main'
+  pull_request:
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: composer install
+
+      - name: Run tests
+        run: ./vendor/bin/phpunit --testdox
