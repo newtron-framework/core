@@ -134,7 +134,7 @@ abstract class AbstractRouter {
         trim($attributes['prefix'], '/');
     }
 
-    call_user_func($callback);
+    call_user_func($callback, $this);
 
     array_pop($this->groupStack);
     $this->currentGroupPrefix = $previousGroupPrefix;

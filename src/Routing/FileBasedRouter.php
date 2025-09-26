@@ -113,29 +113,28 @@ class FileBasedRouter extends AbstractRouter {
    * @param  string $pattern  The route pattern
    */
   protected function createFileRoutes(string $filePath, string $pattern): void {
-    [$routeClass, $options] = include $filePath;
+    $routeConfig = include $filePath;
+    $routeClass = $routeConfig[0];
+    $options = $routeConfig[1] ?? [];
     if (!$routeClass instanceof FileRoute) {
       return;
     }
 
-    $handler = function (array $params) use ($routeClass) {
-      $request = App::getRequest();
-      $method = strtolower($request->getMethod());
+    foreach (['get', 'post', 'put', 'patch', 'delete'] as $method) {
       if (!method_exists($routeClass, $method)) {
-        return Response::create('Method not allowed', Status::NOT_ALLOWED);
+        continue;
       }
-      $data = $routeClass->$method(...$params);
-      return $routeClass->render($data);
-    };
-    $routes = Route::any($pattern, $handler);
-    /** @var RouteDefinition $route */
-    foreach ($routes as $route) {
+      $handler = function (array $params) use ($routeClass, $method) {
+        $request = App::getRequest();
+        $data = $routeClass->$method(...$params);
+        return $routeClass->render($data);
+      };
+      $route = Route::$method($pattern, $handler);
       if (isset($options['middleware']) && is_array($options['middleware'])) {
         foreach ($options['middleware'] as $middleware) {
           $route->withMiddleware($middleware);
         }
       }
-      $this->routes->add($route);
     }
   }
 }

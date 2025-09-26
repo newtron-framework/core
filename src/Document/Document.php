@@ -13,6 +13,7 @@ class Document {
   protected array $meta = [];
   protected array $og = [];
   protected array $links = [];
+  protected string $favicon;
   protected array $headScripts = [];
   protected array $postBodyScripts = [];
   protected array $inlineStyles = [];
@@ -180,13 +181,22 @@ class Document {
   }
 
   /**
+   * Get the path of the document's favicon
+   *
+   * @return string The favicon path
+   */
+  public function getFavicon(): string {
+    return $this->favicon;
+  }
+
+  /**
    * Set the document favicon
    *
    * @param  string $path The path to the favicon file, relative to the app root
    * @return Document The document instance for chaining
    */
   public function setFavicon(string $path): self {
-    $this->addLink($path, 'icon', ['type' => 'image/x-icon']);
+    $this->favicon = $path;
     return $this;
   }
 
@@ -199,6 +209,7 @@ class Document {
    */
   public function addStylesheet(string $href, array $attributes = []): self {
     $this->addLink($href, 'stylesheet', $attributes);
+    return $this;
   }
 
   /**
@@ -324,6 +335,10 @@ class Document {
 
     foreach ($this->og as $property => $content) {
       $html .= "<meta property=\"{$property}\" content=\"{$content}\">\n";
+    }
+
+    if ($this->favicon) {
+      $html .= "<link href=\"{$this->getFavicon()}\" rel=\"icon\" type=\"image/x-icon\">\n";
     }
 
     foreach ($this->assetManager->getStylesheets() as $_ => $style) {

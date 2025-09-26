@@ -12,7 +12,12 @@ class ServiceProvider {
     $this->container = $container;
   }
 
-  public function register(): void {
-    $this->container->bind(TestInterface::class, TestImplementation::class);
+  public function register(Container $container): void {
+    $this->container->singleton(TestInterface::class, TestImplementation::class);
+  }
+
+  public function boot(): void {
+    $instance = $this->container->get(TestInterface::class);
+    $instance->value = 'boot_called';
   }
 }

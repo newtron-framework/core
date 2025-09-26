@@ -76,15 +76,6 @@ class QuarkCompiler {
       return "\$__quark->endSlot();\n";
     };
 
-    $this->directives['include'] = function ($args) {
-      if (preg_match('/^["\']([^"\']+)["\'](?:\s*,\s*(.+))?$/', $args, $matches)) {
-        $template = $matches[1];
-        $data = $matches[2] ?? '[]';
-        return "echo \$__quark->render('{$template}', array_merge(get_defined_vars(), {$data}));\n";
-      }
-      throw new \Exception("Invalid include syntax: {$args}");
-    };
-
     $this->directives['if'] = fn($args) => "if ({$args}) {\n";
     $this->directives['elseif'] = fn($args) => "} elseif ({$args}) {\n";
     $this->directives['else'] = fn($args) => "} else {\n";

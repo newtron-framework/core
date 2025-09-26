@@ -4,9 +4,8 @@ declare(strict_types=1);
 namespace Tests;
 
 use Newtron\Core\Application\App;
-use PHPUnit\Framework\TestCase;
 
-class AppTestCase extends TestCase {
+class AppTestCase extends BaseTestCase {
   protected string $testRootPath;
   protected string $testConfigPath;
   protected string $testEnvPath;
@@ -89,22 +88,5 @@ class AppTestCase extends TestCase {
     }
 
     return App::create($this->testRootPath);
-  }
-
-  private function deleteDirectory(string $dir): void {
-    if (!is_dir($dir)) {
-      return;
-    }
-
-    $files = scandir($dir);
-    foreach ($files as $file) {
-      if ($file === '.' || $file === '..') {
-        continue;
-      }
-
-      $path = $dir . '/' . $file;
-      is_dir($path) ? $this->deleteDirectory($path) : unlink($path);
-    }
-    rmdir($dir);
   }
 }

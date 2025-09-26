@@ -73,7 +73,6 @@ class QuarkEngine {
       throw new \Exception("Template '{$template}' not found");
     }
 
-    $this->skipRootLayout = false;
     $this->layouts = [];
     $this->outlets = $outlets;
     $this->currentSlot = '';
@@ -109,6 +108,7 @@ class QuarkEngine {
       return $this->render($this->rootLayout, $data, $this->outlets, true);
     }
 
+    $this->skipRootLayout = false;
     return $content;
   }
 
