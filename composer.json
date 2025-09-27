@@ -1,6 +1,15 @@
 {
   "name": "newtron/core",
   "type": "library",
+  "description": "Core framework package for Newtron",
+  "homepage": "https://github.com/newtron-framework/core",
+  "authors": [
+    {
+      "name": "itsnewtjam",
+      "email": "newtron@newtjam.com",
+      "homepage": "https://newtjam.com"
+    }
+  ],
   "autoload": {
     "psr-4": {
       "Newtron\\Core\\": "src/"
@@ -13,6 +22,7 @@
     }
   },
   "require": {
+    "php": ">=8.3.0",
     "composer-runtime-api": "*"
   },
   "require-dev": {
