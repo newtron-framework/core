@@ -1,5 +1,7 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/newtron-framework/assets/master/newtron-logo.png" alt="newtron" />
+  <a href="https;//newtron.app" target="_blank">
+    <img src="https://raw.githubusercontent.com/newtron-framework/assets/master/newtron-logo.png" alt="newtron" />
+  </a>
 </p>
 
 > This is the core framework package for Newtron.
@@ -24,7 +26,6 @@ Newtron is currently a work in progress. In it's current state, Newtron can supp
 - Two routing modes (declarative or file-based)
 - Middleware pipeline
 - Quark, a custom templating engine
-- Reactor CLI tool
 - Error handling and logging
 
 ### 🚧 Up Next: Developer experience improvements and the signature forms system
