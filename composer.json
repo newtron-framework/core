@@ -4,6 +4,7 @@
   "type": "library",
   "description": "Core framework package for Newtron",
   "homepage": "https://github.com/newtron-framework/core",
+  "license": "MIT",
   "authors": [
     {
       "name": "itsnewtjam",
