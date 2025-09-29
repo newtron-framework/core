@@ -78,7 +78,7 @@ class QuarkCompiler {
 
     $this->directives['include'] = function ($args) {
       $template = trim($args, '"\'');
-      return "echo \$__quark->render('{$template}');\n";
+      return "\$__quark->skipRootLayout();\necho \$__quark->render('{$template}');\n";
     };
 
     $this->directives['if'] = fn($args) => "if ({$args}) {\n";
