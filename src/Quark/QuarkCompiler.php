@@ -76,6 +76,11 @@ class QuarkCompiler {
       return "\$__quark->endSlot();\n";
     };
 
+    $this->directives['include'] = function ($args) {
+      $template = trim($args, '"\'');
+      return "echo \$__quark->render('{$template}');\n";
+    };
+
     $this->directives['if'] = fn($args) => "if ({$args}) {\n";
     $this->directives['elseif'] = fn($args) => "} elseif ({$args}) {\n";
     $this->directives['else'] = fn($args) => "} else {\n";

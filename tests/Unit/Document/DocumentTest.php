@@ -87,7 +87,7 @@ class DocumentTest extends AppTestCase {
     );
   }
 
-  public function testSetOG(): void {
+  public function testSetOg(): void {
     App::create($this->testRootPath);
 
     $document = App::getDocument();
@@ -96,7 +96,7 @@ class DocumentTest extends AppTestCase {
     $this->assertEquals(['og:test' => 'test_og'], $document->getOG());
   }
 
-  public function testGetAllOG(): void {
+  public function testGetAllOg(): void {
     App::create($this->testRootPath);
 
     $document = App::getDocument();
@@ -109,7 +109,7 @@ class DocumentTest extends AppTestCase {
     );
   }
 
-  public function testGetSingleOG(): void {
+  public function testGetSingleOg(): void {
     App::create($this->testRootPath);
 
     $document = App::getDocument();

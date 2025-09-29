@@ -49,7 +49,7 @@ class RequestTest extends TestCase {
     $this->assertEquals('test_value', $request->getCookie('test-cookie'));
   }
 
-  public function testGetURI(): void {
+  public function testGetUri(): void {
     $_SERVER['REQUEST_URI'] = '/test?param=value';
     $request = new Request();
 
@@ -63,7 +63,7 @@ class RequestTest extends TestCase {
     $this->assertEquals('/test', $request->getPath());
   }
 
-  public function testGetURL(): void {
+  public function testGetUrl(): void {
     $_SERVER['HTTPS'] = 'on';
     $_SERVER['HTTP_HOST'] = 'test.com';
     $_SERVER['REQUEST_URI'] = '/test?param=value';
@@ -118,13 +118,13 @@ class RequestTest extends TestCase {
     $this->assertTrue($request->isAjax());
   }
 
-  public function testGetZeroIPWhenNotSet(): void {
+  public function testGetZeroIpWhenNotSet(): void {
     $request = new Request();
 
     $this->assertEquals('0.0.0.0', $request->getIP());
   }
 
-  public function testGetIP(): void {
+  public function testGetIp(): void {
     $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
     $request = new Request();
 
