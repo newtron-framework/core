@@ -19,6 +19,7 @@ class QuarkCompilerTest extends QuarkTestCase {
         'outlet',
         'slot',
         'endslot',
+        'include',
         'if',
         'elseif',
         'else',

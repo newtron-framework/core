@@ -97,6 +97,16 @@ class QuarkEngineTest extends QuarkTestCase {
     );
   }
 
+  public function testRenderTemplateWithInclude(): void {
+    $this->createTestTemplate('test', '<div>{% include included %}</div>');
+    $this->createTestTemplate('included', '<p>Included</p>');
+
+    $this->assertEquals(
+      '<div><p>Included</p></div>',
+      $this->engine->render('test')
+    );
+  }
+
   public function testRenderTemplateWithIf(): void {
     $this->createTestTemplate('test', '<div>{% if $test %}True{% endif %}</div>');
 
