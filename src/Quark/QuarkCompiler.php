@@ -98,7 +98,7 @@ class QuarkCompiler {
     
           $data =  "compact(" . implode(', ', $quotedVars) . ")";
         }
-        return "echo \$__quark->render('{$template}', {$data});\n";
+        return "echo \$__quark->render('{$template}', {$data}, [], true);\n";
       }
       throw new \Exception("Invalid include syntax: {$args}");
     };
