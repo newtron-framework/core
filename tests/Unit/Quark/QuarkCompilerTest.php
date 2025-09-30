@@ -151,7 +151,7 @@ class QuarkCompilerTest extends QuarkTestCase {
     $method->setAccessible(true);
 
     $this->assertEquals(
-      '$test->property',
+      '$__quark->access($test, \'property\')',
       $method->invoke($this->compiler, 'test.property')
     );
   }
