@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Quark;
 
+use Tests\Mocks\Quark\SimpleObject;
 use Tests\QuarkTestCase;
 
 class QuarkEngineTest extends QuarkTestCase {
@@ -211,6 +212,51 @@ class QuarkEngineTest extends QuarkTestCase {
     $this->assertEquals(
       '<div>test</div>',
       $this->engine->escape('<div>test</div>', 'raw')
+    );
+  }
+
+  public function testDotWithArray(): void {
+    $this->createTestTemplate('test', '<div>{{ test.title }}</div>');
+
+    $this->assertEquals(
+      '<div>Test Value</div>',
+      $this->engine->render('test', ['test' => ['title' => 'Test Value']])
+    );
+  }
+
+  public function testDotWithObject(): void {
+    $this->createTestTemplate('test', '<div>{{ test.property }}</div>');
+
+    $this->assertEquals(
+      '<div>Test Property</div>',
+      $this->engine->render('test', ['test' => new SimpleObject()])
+    );
+  }
+
+  public function testDotWithMethod(): void {
+    $this->createTestTemplate('test', '<div>{{ test.method() }}</div>');
+
+    $this->assertEquals(
+      '<div>Test Method</div>',
+      $this->engine->render('test', ['test' => new SimpleObject()])
+    );
+  }
+
+  public function testDotWithMixed(): void {
+    $this->createTestTemplate('test', '<div>{{ test.nested.method() }}</div>');
+
+    $this->assertEquals(
+      '<div>Nested Method</div>',
+      $this->engine->render('test', ['test' => new SimpleObject()])
+    );
+  }
+
+  public function testDotWithNestedMethods(): void {
+    $this->createTestTemplate('test', '<div>{{ test.getNested().method() }}</div>');
+
+    $this->assertEquals(
+      '<div>Nested Method</div>',
+      $this->engine->render('test', ['test' => new SimpleObject()])
     );
   }
 

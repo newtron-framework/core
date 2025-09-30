@@ -77,8 +77,30 @@ class QuarkCompiler {
     };
 
     $this->directives['include'] = function ($args) {
-      $template = trim($args, '"\'');
-      return "\$__quark->skipRootLayout();\necho \$__quark->render('{$template}');\n";
+      if (preg_match('/^["\']?([^"\'\s]+)["\']?(?:\s*\[(.+)\])?$/', $args, $matches)) {
+        $template = trim($matches[1], '"\'');
+        $data = '[]';
+        if (count($matches) > 2) {
+          $variables = array_map('trim', explode(',', $matches[2]));
+          
+          $cleanVars = [];
+          foreach ($variables as $var) {
+            $var = ltrim($var, '$');
+            
+            if (preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $var)) {
+              $cleanVars[] = $var;
+            }
+          }
+    
+          $quotedVars = array_map(function($var) {
+            return "'" . $var . "'";
+          }, $cleanVars);
+    
+          $data =  "compact(" . implode(', ', $quotedVars) . ")";
+        }
+        return "echo \$__quark->render('{$template}', {$data});\n";
+      }
+      throw new \Exception("Invalid include syntax: {$args}");
     };
 
     $this->directives['if'] = fn($args) => "if ({$args}) {\n";
@@ -215,16 +237,27 @@ class QuarkCompiler {
       return $expression;
     }
 
-    if (strpos($expression, '.') !== false) {
-      if (preg_match('/^(\w+)\.(.+)$/', $expression, $matches)) {
-        return '$' . $matches[1] . '->' . str_replace('.', '->', $matches[2]);
+    if (strpos($expression, '->') !== false) {
+      if (preg_match('/^(\w+)->(.+)$/', $expression, $matches)) {
+        return '$' . $matches[1] . '->' . $matches[2];
       }
     }
 
-    if (strpos($expression, '->') !== false) {
-      if (preg_match('/^(\w+)->(.+)$/', $expression, $matches)) {
-        return '$' . $matches[1] . '->' . str_replace('.', '->', $matches[2]);
+    if (strpos($expression, '.') !== false) {
+      $parts = explode('.', $expression);
+      $variable = '$' . array_shift($parts);
+      foreach ($parts as $part) {
+        if (preg_match('/^(\w+)\((.*)\)$/', $part, $matches)) {
+          $method = $matches[1];
+          $args = $matches[2];
+          $variable .= '->' . $method . '(' . $args . ')';
+        } elseif (is_numeric($part)) {
+          $variable .= '[' . $part . ']';
+        } else {
+          $variable = "\$__quark->access({$variable}, '{$part}')";
+        }
       }
+      return $variable;
     }
 
     if (preg_match('/^\w+$/', $expression)) {
