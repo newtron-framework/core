@@ -208,6 +208,39 @@ class QuarkEngine {
   }
 
   /**
+   * Smart accessor for arrays, objects, and ArrayAccess
+   *
+   * @param  mixed  $value The value to access on
+   * @param  string $key   The member to access
+   */
+  public function access(mixed $value, string $key): mixed {
+    if ($value === null) {
+      return null;
+    }
+
+    if (is_array($value) || $value instanceof \ArrayAccess) {
+      return $value[$key] ?? null;
+    }
+
+    if (is_object($value)) {
+      if (property_exists($value, $key)) {
+        return $value->$key;
+      }
+
+      $getter = 'get' . ucfirst($key);
+      if (method_exists($value, $getter)) {
+        return $value->$getter();
+      }
+
+      if (method_exists($value, '__get')) {
+        return $value->__get($key);
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Apply a filter to a value
    *
    * @param  string $name  The filter name
