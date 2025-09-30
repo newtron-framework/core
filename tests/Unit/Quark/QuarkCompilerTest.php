@@ -52,7 +52,7 @@ class QuarkCompilerTest extends QuarkTestCase {
     $this->assertArrayHasKey('test', $directives);
     $this->assertEquals(
       "<?php\necho '<div>';\necho 'test_directive_ran';\necho '</div>';\n",
-      $this->compiler->compile('<div>{% test %}</div>')
+      $this->compiler->compile('<div>~test()</div>')
     );
   }
 
@@ -68,7 +68,7 @@ class QuarkCompilerTest extends QuarkTestCase {
         ['type' => 'text', 'content' => '</div>'],
         ['type' => 'directive', 'name' => 'outlet', 'args' => ''],
       ],
-      $method->invoke($this->compiler, '<div>{{ test }}</div>{% outlet %}')
+      $method->invoke($this->compiler, '<div>{{ test }}</div>~outlet()')
     );
   }
 
@@ -79,7 +79,7 @@ class QuarkCompilerTest extends QuarkTestCase {
 
     $this->assertEquals(
       ['type' => 'directive', 'name' => 'outlet', 'args' => 'custom'],
-      $method->invoke($this->compiler, 'outlet custom')
+      $method->invoke($this->compiler, '~outlet(custom)')
     );
   }
 
