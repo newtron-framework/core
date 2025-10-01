@@ -1,6 +1,6 @@
 {
   "name": "newtron/core",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "type": "library",
   "description": "Core framework package for Newtron",
   "homepage": "https://github.com/newtron-framework/core",
