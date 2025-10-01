@@ -126,7 +126,7 @@ class QuarkCompiler {
    */
   private function tokenize(string $source): array {
     $tokens = [];
-    $pattern = '/\{\{(.*?)\}\}|(~[a-zA-Z\-_]+\([^~]*\))/s';
+    $pattern = '/\{\{(.*?)\}\}|\{~(.*?)~\}/s';
     $lastPos = 0;
 
     preg_match_all($pattern, $source, $matches, PREG_OFFSET_CAPTURE);
@@ -167,7 +167,7 @@ class QuarkCompiler {
    * @throws \Exception If the directive syntax is invalid
    */
   private function parseDirective(string $directive): array {
-    if (preg_match('/^~(\w+)\((.*)\)$/', $directive, $matches)) {
+    if (preg_match('/^(\w+)(?:\s+(.+))?$/', $directive, $matches)) {
       return [
         'type' => 'directive',
         'name' => $matches[1],
