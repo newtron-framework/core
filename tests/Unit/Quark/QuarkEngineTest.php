@@ -45,8 +45,8 @@ class QuarkEngineTest extends QuarkTestCase {
   }
 
   public function testRenderTemplateWithLayout(): void {
-    $this->createTestTemplate('layout', '<div>~outlet()</div>');
-    $this->createTestTemplate('test', '~layout(layout)<p>{{ test }}</p>');
+    $this->createTestTemplate('layout', '<div>{~ outlet ~}</div>');
+    $this->createTestTemplate('test', '{~ layout layout ~}<p>{{ test }}</p>');
 
     $this->assertEquals(
       '<div><p>Test Value</p></div>',
@@ -55,7 +55,7 @@ class QuarkEngineTest extends QuarkTestCase {
   }
 
   public function testRenderTemplateWithRootLayout(): void {
-    $this->createTestTemplate('root', '<div>~outlet()</div>');
+    $this->createTestTemplate('root', '<div>{~ outlet ~}</div>');
     $this->createTestTemplate('test', '<p>{{ test }}</p>');
     $this->engine->setRootLayout('root');
 
@@ -66,7 +66,7 @@ class QuarkEngineTest extends QuarkTestCase {
   }
 
   public function testRenderTemplateWithSkipRootLayout(): void {
-    $this->createTestTemplate('root', '<div>~outlet()</div>');
+    $this->createTestTemplate('root', '<div>{~ outlet ~}</div>');
     $this->createTestTemplate('test', '<p>{{ test }}</p>');
     $this->engine->setRootLayout('root');
     $this->engine->skipRootLayout();
@@ -78,8 +78,8 @@ class QuarkEngineTest extends QuarkTestCase {
   }
 
   public function testRenderTemplateWithSkipRootDirective(): void {
-    $this->createTestTemplate('root', '<div>~outlet()</div>');
-    $this->createTestTemplate('test', '~skip_root()<p>{{ test }}</p>');
+    $this->createTestTemplate('root', '<div>{~ outlet ~}</div>');
+    $this->createTestTemplate('test', '{~ skip_root ~}<p>{{ test }}</p>');
     $this->engine->setRootLayout('root');
 
     $this->assertEquals(
@@ -89,8 +89,8 @@ class QuarkEngineTest extends QuarkTestCase {
   }
 
   public function testRenderTemplateWithCustomOutlet(): void {
-    $this->createTestTemplate('layout', '<div>~outlet(custom)</div>');
-    $this->createTestTemplate('test', '~layout(layout)~slot(custom)<p>{{ test }}</p>~endslot()');
+    $this->createTestTemplate('layout', '<div>{~ outlet custom ~}</div>');
+    $this->createTestTemplate('test', '{~ layout layout ~}{~ slot custom ~}<p>{{ test }}</p>{~ endslot ~}');
 
     $this->assertEquals(
       '<div><p>Test Value</p></div>',
@@ -99,7 +99,7 @@ class QuarkEngineTest extends QuarkTestCase {
   }
 
   public function testRenderTemplateWithInclude(): void {
-    $this->createTestTemplate('test', '<div>~include(included)</div>');
+    $this->createTestTemplate('test', '<div>{~ include included ~}</div>');
     $this->createTestTemplate('included', '<p>Included</p>');
 
     $this->assertEquals(
@@ -109,7 +109,7 @@ class QuarkEngineTest extends QuarkTestCase {
   }
 
   public function testRenderTemplateWithIf(): void {
-    $this->createTestTemplate('test', '<div>~if($test)True~endif()</div>');
+    $this->createTestTemplate('test', '<div>{~ if $test ~}True{~ endif ~}</div>');
 
     $this->assertEquals(
       '<div></div>',
@@ -124,7 +124,7 @@ class QuarkEngineTest extends QuarkTestCase {
   public function testRenderTemplateWithIfWithElses(): void {
     $this->createTestTemplate(
       'test',
-      '<div>~if($test == 1)One~elseif($test == 2)Two~else()None~endif()</div>'
+      '<div>{~ if $test == 1 ~}One{~ elseif $test == 2 ~}Two{~ else ~}None{~ endif ~}</div>'
     );
 
     $this->assertEquals(
@@ -144,7 +144,7 @@ class QuarkEngineTest extends QuarkTestCase {
   public function testRenderTemplateWithForeach(): void {
     $this->createTestTemplate(
       'test',
-      '<div>~foreach($test as $item)<p>{{ $item[\'name\'] }}</p>~endforeach()</div>'
+      '<div>{~ foreach $test as $item ~}<p>{{ $item[\'name\'] }}</p>{~ endforeach ~}</div>'
     );
 
     $this->assertEquals(
@@ -160,7 +160,7 @@ class QuarkEngineTest extends QuarkTestCase {
   public function testRenderTemplateWithSet(): void {
     $this->createTestTemplate(
       'test',
-      '<div>~if($test)~set($text = \'new_value\')~endif(){{ text }}</div>'
+      '<div>{~ if $test ~}{~ set $text = \'new_value\' ~}{~ endif ~}{{ text }}</div>'
     );
 
     $this->assertEquals(
